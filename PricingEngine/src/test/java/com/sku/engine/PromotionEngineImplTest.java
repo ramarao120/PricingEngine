@@ -15,6 +15,7 @@ public class PromotionEngineImplTest {
 				Arrays.asList("A", "B", "C"));
 		assertEquals(100.0, getTotalprice,0.0);
 		
+		
 	}
 
 }
