@@ -26,4 +26,23 @@ public class PromotionEngineImplTest {
 		
 		
 	}
+	@Test
+	public void testScenario3()
+	{
+		double getTotalprice=new PromotionEngineImpl().calculatePriceWithApplyPromotion(
+				Arrays.asList("A", "A", "A", "B", "B", "B", "B", "B", "C", "D"));
+		assertEquals(280.0, getTotalprice,0.0);
+		
+		
+	}
+	@Test
+	public void testScenario4()
+	{
+		double getTotalprice=new PromotionEngineImpl().calculatePriceWithApplyPromotion(
+				Arrays.asList("A", "A", "A", "B", "B", "B", "B", "B", "C", "D", "C", "D"));
+		assertEquals(310.0, getTotalprice,0.0);
+		
+		
+	}
+	
 }

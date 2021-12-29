@@ -32,7 +32,9 @@ public class PromotionEngineImpl implements PromotionEngine{
 			for (PromotionItem promotionItem : promotionItems) {
 				if (PromotionType.INDIVIDUAL.equals(promotionItem.getPromotionType())) {
 					totalPrice += processIndividualPromotion(promotionItem, promotionItemsCountMap);
-				} 
+				} else if (PromotionType.COMBINED.equals(promotionItem.getPromotionType())) {
+					totalPrice += processCombinedPromotion(promotionItem, promotionItemsCountMap);
+				}
 			}
 
 		} catch (Exception exp) {
@@ -92,5 +94,50 @@ public class PromotionEngineImpl implements PromotionEngine{
 		}
 		double total = 0;
 		return calculateSum(numberOfItems, promotionItem, total);
+	}
+	private double processCombinedPromotion(PromotionItem promotionItem, Map<String, Integer> promotionItemsCountMap) {
+		List<String> combinedItemsList = Arrays.asList(promotionItem.getProductName().split(COMBINED_OFFER_SEPERATOR));
+		boolean isCombinedItemsExist = verifyCombinedProductExits(combinedItemsList, promotionItemsCountMap.keySet());
+		double total = 0;
+		if (isCombinedItemsExist) {
+			return calculateCombineProductsPrise(combinedItemsList, promotionItemsCountMap, promotionItem, total);
+		} else {
+			for (String item : combinedItemsList) {
+				total += promotionItemsCountMap.getOrDefault(item, 0) * items.getOrDefault(item, (double) 0);
+			}
+		}
+		return total;
+	}
+	private boolean verifyCombinedProductExits(List<String> combinedItemsList, Set<String> purchasedProducts) {
+		for (String item : combinedItemsList) {
+			if (!purchasedProducts.contains(item)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private double calculateCombineProductsPrise(List<String> combinedItemsList, Map<String, Integer> promotionItemsCountMap,
+			PromotionItem promotionItem, double total) {
+		int purchaseToatal = combinedItemsList.stream().map(key -> promotionItemsCountMap.get(key)).reduce(0,
+				(a, b) -> a + b);
+		if (purchaseToatal <= 0) {
+			return total;
+		}
+		int reduce = purchaseToatal / 2;
+		if (reduce <= 0) {
+			for (String combItem : combinedItemsList) {
+				if (promotionItemsCountMap.getOrDefault(combItem, 0) > 0) {
+					total += promotionItemsCountMap.getOrDefault(combItem, 0) * items.get(combItem);
+					promotionItemsCountMap.put(combItem, 0);
+				}
+			}
+			return total;
+		}
+		total = reduce * promotionItem.getOfferPrice();
+		combinedItemsList.stream().forEach(key -> {
+			promotionItemsCountMap.put(key, promotionItemsCountMap.get(key) - reduce);
+		});
+		return calculateCombineProductsPrise(combinedItemsList, promotionItemsCountMap, promotionItem, total);
 	}
 }
